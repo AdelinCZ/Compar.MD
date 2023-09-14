@@ -1,0 +1,21 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="Theme"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    @Body
+</MudLayout>
+
+@code {
+    private MudTheme Theme = new MudTheme()
+        {
+            Palette = new Palette()
+            {
+                Tertiary = Colors.DeepPurple.Darken4,
+                Background = "#594ae2"
+            },
+            
+        };
+}

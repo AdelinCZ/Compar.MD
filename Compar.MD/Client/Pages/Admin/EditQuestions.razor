@@ -1,0 +1,122 @@
+﻿@page "/edit-questions"
+@layout AdminLayout
+@inject HttpClient httpClient
+
+<MudGrid>
+    <MudItem md="7">
+        <MudText>Intrebari existente : </MudText>
+
+        @if(Questions is null || !Questions.Any())
+        {
+            <MudAlert Class="pa-4 mt-6" Severity="Severity.Error">Nu exista intrebari la moment.</MudAlert>
+        }
+        else{
+            <MudTable Elevation="3" Class="pa-4 mt-6" Items="@Questions" Height="600px">
+                <ColGroup>
+                    <col style="width: 80%;" />
+                    <col />
+                    <col />
+                </ColGroup>
+                <RowTemplate>
+                    <MudTd DataLabel="Nr">@context.Question</MudTd>
+                    <MudTd DataLabel="Nr"><MudButton Color="Color.Primary" OnClick="@((e) => CopyData(context))" >Editeaza</MudButton></MudTd>
+                    <MudTd DataLabel="Nr"><MudButton Color="Color.Error" OnClick="@((e) => DeleteQuestion(context.Id))" >Sterge</MudButton></MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudItem>
+    
+    <MudItem md="5">
+        <MudText>Adauga intrebare noua : </MudText>
+        <MudPaper Elevation="3" Class="pa-4 mt-6">
+            <MudTextField T="string" @bind-Value="newQuestion.Question" Label="Intrebare" />
+            <MudTextField T="string" @bind-Value="newQuestion.Answer"  Label="Raspuns" />
+        </MudPaper>
+        <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="AddQuestion">Adauga</MudButton>
+        
+        <MudText Class="mt-12">Editeaza intrebare : </MudText>
+        <MudPaper Elevation="3" Class="pa-4 mt-6">
+            <MudTextField T="string" @bind-Value="questionToEdit.Question" Label="Intrebare" />
+            <MudTextField T="string" @bind-Value="questionToEdit.Answer" Label="Raspuns" />
+        </MudPaper>
+        <MudButton Class="mt-4" Variant="Variant.Filled" OnClick="EditQuestion">Salveaza</MudButton>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private QuestionDto newQuestion = new();
+    private QuestionDto questionToEdit = new();
+    private IEnumerable<QuestionDto> Questions;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Questions = await httpClient.GetFromJsonAsync<List<QuestionDto>>("api/questions");
+
+        if (Questions is null)
+            Questions = new List<QuestionDto>();
+
+        StateHasChanged();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task AddQuestion()
+    {
+        if(newQuestion.Question != string.Empty && newQuestion.Answer != string.Empty)
+        {
+            var response = await httpClient.PostAsJsonAsync("api/questions", newQuestion);
+
+            if (response.IsSuccessStatusCode)
+            {
+
+                newQuestion = new();
+                Questions = await httpClient.GetFromJsonAsync<List<QuestionDto>>("api/questions");
+
+                StateHasChanged();
+            }
+        }
+    }
+
+    public void CopyData(QuestionDto data)
+    {
+
+        questionToEdit = new()
+            {
+                Id = data.Id,
+                Question = data.Question,
+                Answer = data.Answer
+            };
+
+        StateHasChanged();
+    }
+
+    public async Task EditQuestion()
+    {
+        if (questionToEdit.Question != string.Empty && questionToEdit.Answer != string.Empty)
+        {
+            var response = await httpClient.PostAsJsonAsync("api/questions/edit", questionToEdit);
+
+            if (response.IsSuccessStatusCode)
+            {
+
+                questionToEdit = new();
+                Questions = await httpClient.GetFromJsonAsync<List<QuestionDto>>("api/questions");
+
+                StateHasChanged();
+            }
+        }
+    }
+
+    public async Task DeleteQuestion(string questionId)
+    {
+        var result = await httpClient.PostAsJsonAsync<string>("api/questions/delete", questionId);
+
+        if(result.IsSuccessStatusCode)
+        {
+            Questions = await httpClient.GetFromJsonAsync<List<QuestionDto>>("api/questions");
+
+            StateHasChanged();
+        }
+    }
+
+}

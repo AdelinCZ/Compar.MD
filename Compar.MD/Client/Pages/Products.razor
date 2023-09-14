@@ -1,0 +1,171 @@
+﻿@page "/products"
+@inject HttpClient httpClient;
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+    <MudGrid>
+        <MudItem md="12"> 
+            <MudText Typo="Typo.h4">Produse :</MudText>
+        </MudItem>
+
+        <MudItem md="3">
+            <MudSelect Dense="true" T="string" @bind-Value=sortType.ProductType Label="Tipul produsului" Variant="Variant.Outlined">
+                @foreach(var productType in productTypes){
+                    <MudSelectItem Value="@productType.ProductTypeName" />
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem md="2">
+            <MudSelect Dense="true" T="string" @bind-Value=sortType.Brand Label ="Producator" Variant="Variant.Outlined">
+                @foreach (var brand in brands)
+                {
+                    <MudSelectItem Value="@brand.BrandName" />
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem md="2">
+            <MudSelect Dense="true" T="string" @bind-Value=sortType.Store Label ="Distribuitor" Variant="Variant.Outlined">
+                @foreach (var store in stores)
+                {
+                    <MudSelectItem Value="@store.StoreName" />
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem md="2">
+            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="Sort">Sorteaza</MudButton>
+            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Reset">Reseteaza</MudButton>
+        </MudItem>
+        <MudItem md="2">
+            
+        </MudItem>
+
+@* -------------------------------------------------------------------------------------------*@
+
+        @if (SortedProducts.Count == 0)
+        {
+            <MudAlert Severity="Severity.Error">La moment nu exista produse</MudAlert>
+        }
+        else
+        {
+            foreach (var product in SortedProducts)
+            {
+                <MudItem md="3">
+                    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                        <MudGrid>
+                            <MudItem md="5">
+                                <MudImage Width="130" Height="150" Src="@product.ImageURL" Class="rounded-lg" />
+                            </MudItem>
+                            <MudItem md="7">
+                                <MudText Typo="Typo.body1">@product.Name</MudText>
+                                <MudText Typo="Typo.body2">Cele mai bune preturi :</MudText>
+                                <MudGrid Class="my-3">
+                                    @if (product.Prices.Count == 1)
+                                    {
+                                        <MudItem md="5">
+                                            <MudText Typo="Typo.body2">@product.Prices[0].SupplierName</MudText>
+                                        </MudItem>
+                                        <MudItem md="5">
+                                            <MudText Typo="Typo.body2"> - @product.Prices[0].Price Lei</MudText>
+                                        </MudItem>
+                                    }
+                                    else if (product.Prices.Count > 1)
+                                    {
+                                        <MudItem md="5">
+                                            <MudText Typo="Typo.body2">@product.Prices[0].SupplierName</MudText>
+                                        </MudItem>
+                                        <MudItem md="6">
+                                            <MudText Typo="Typo.body2"> - @product.Prices[0].Price.ToString("0.#####") Lei</MudText>
+                                        </MudItem>
+
+                                        var i = 0;
+                                        foreach(var price in product.Prices)
+                                        {
+                                            if (i != 0)
+                                            {
+                                                <MudItem md="5" Class="mt-n4">
+                                                    <MudText Typo="Typo.body2">@price.SupplierName</MudText>
+                                                </MudItem>
+                                                <MudItem md="7" Class="mt-n4">
+                                                    <MudText Typo="Typo.body2"> - @price.Price.ToString("0.#####") Lei</MudText>
+                                                </MudItem>
+                                            }
+                                            i++;
+                                        }
+                                    }
+                                </MudGrid>
+                            </MudItem>
+                        </MudGrid>
+                    </MudPaper>
+                </MudItem>
+            }
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    List<ProductDto> AllProducts = new();
+    List<ProductDto> SortedProducts = new();
+    SortType sortType = new();
+
+    private List<StoreDto> stores = new();
+    private List<BrandDto> brands = new();
+    private List<ProductTypeDto> productTypes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetStores();
+        await GetBrands();
+        await GetProductTypes();
+
+        await GetProduct();
+        StateHasChanged();
+
+        await base.OnInitializedAsync();
+    }
+
+    public async Task GetStores() => stores = await this.httpClient.GetFromJsonAsync<List<StoreDto>>("api/stores");
+    public async Task GetBrands() => brands = await this.httpClient.GetFromJsonAsync<List<BrandDto>>("api/brands");
+    public async Task GetProductTypes() => productTypes = await this.httpClient.GetFromJsonAsync<List<ProductTypeDto>>("api/productTypes");
+
+    public async Task GetProduct()
+    {
+        AllProducts = await httpClient.GetFromJsonAsync<List<ProductDto>>("api/products");
+
+        foreach (var product in AllProducts)
+        {
+            product.Prices = product.Prices.OrderByDescending(x => x.Price).ToList();
+        }
+
+        SortedProducts = AllProducts;
+    }
+
+    public void Sort()
+    {
+        SortedProducts = AllProducts;
+
+        if (!string.IsNullOrEmpty(sortType.ProductType))
+            SortedProducts = SortedProducts.Where(x => x.ProductType == sortType.ProductType).ToList();
+
+        if (!string.IsNullOrEmpty(sortType.Brand))
+            SortedProducts = SortedProducts.Where(x => x.ProductBrand == sortType.Brand).ToList();
+
+        if (!string.IsNullOrEmpty(sortType.Store))
+            SortedProducts = SortedProducts.Where(x => x.Prices.Select(x => x.SupplierName).Contains(sortType.Store)).ToList();
+
+        StateHasChanged();
+    }
+
+    public void Reset()
+    {
+        sortType = new();
+
+        SortedProducts = AllProducts;
+        StateHasChanged();
+    }
+
+    public class SortType
+    {
+        public string ProductType { get; set; }
+        public string Brand { get; set; }
+        public string Store { get; set; }
+    }
+}

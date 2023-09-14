@@ -1,0 +1,52 @@
+﻿@page "/edit-product"
+@layout AdminLayout
+@inject HttpClient httpClient
+
+<MudGrid>
+    <MudItem md="5">
+        <MudText>Produse existente : </MudText>
+
+        @if (products is null || !products.Any())
+        {
+            <MudAlert Class="pa-4 mt-6" Severity="Severity.Error">Nu exista produse la moment.</MudAlert>
+        }
+        else
+        {
+            <MudTable Elevation="3" Class="pa-4 mt-6" Items="@products" Height="400px">
+                <ColGroup>
+                    <col style="width: 80%;" />
+                    <col />
+                    <col />
+                </ColGroup>
+                <RowTemplate>
+                    <MudTd DataLabel="Nr">@context.Name</MudTd>
+                    <MudTd DataLabel="Nr"><MudButton Color="Color.Error" OnClick="@((e) => DeleteProduct(context.Id))">Sterge</MudButton></MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudItem>
+</MudGrid>
+
+
+@code{
+    IEnumerable<ProductDto> products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProducts();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task GetProducts() => products = await httpClient.GetFromJsonAsync<List<ProductDto>>("api/products");
+
+    public async Task DeleteProduct(string productId)
+    {
+        var result = await httpClient.PostAsJsonAsync("api/products/delete", productId);
+
+        if (result.IsSuccessStatusCode)
+        {
+            await GetProducts();
+            StateHasChanged();
+        }
+    }
+}

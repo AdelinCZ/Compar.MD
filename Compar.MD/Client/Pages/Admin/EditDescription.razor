@@ -1,0 +1,30 @@
+﻿@page "/edit-description"
+@layout AdminLayout
+@inject HttpClient httpClient
+
+<MudGrid>
+    <MudItem xs="6">
+        <MudTextField @ref="multilineReference" T="string" Lines="6" Variant="Variant.Outlined" Text="@projectDescription" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Api" OnAdornmentClick="@(() => multilineReference.SelectAsync())" />
+    </MudItem>
+</MudGrid>
+<MudButton Class="mt-6" Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveNewDescription">Salveaza</MudButton>
+
+@code
+{
+    private MudTextField<string> multilineReference;
+
+    string projectDescription = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        projectDescription = await httpClient.GetStringAsync("api/server-description");
+        await base.OnInitializedAsync();
+    }
+
+    public async Task SaveNewDescription()
+    {
+        projectDescription = multilineReference.Value;
+        await httpClient.PostAsJsonAsync("api/server-description", projectDescription);
+        StateHasChanged();
+    }
+}

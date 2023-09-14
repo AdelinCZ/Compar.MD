@@ -1,0 +1,24 @@
+﻿@page "/register"
+@layout EmptyLayout
+
+
+<MudContainer MaxWidth="MaxWidth.Medium" Style="padding-top: 200px;">
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="12" sm="8">
+            <MudPaper Class="pa-4">
+                <MudText Class="d-flex justify-center" Typo="Typo.h5">Inregistrare</MudText>
+                <MudForm>
+                    <MudTextField T="string" Label="Username" />
+                    <MudTextField T="string" Label="Email" />
+                    <MudTextField T="string" Label="Password" InputType="InputType.Password" />
+                </MudForm>
+            </MudPaper>
+
+            <MudItem Class="pa-4 mt-4 d-flex justify-center">
+                <MudButton Href="/register" Variant="Variant.Filled" Color="Color.Tertiary" DisableElevation="true">Inregistrare</MudButton>
+                <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true" Class="mx-2">Autentificare</MudButton>
+                <MudButton Href="/" Variant="Variant.Filled" Color="Color.Secondary" DisableElevation="true">Pagina principala</MudButton>
+            </MudItem>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

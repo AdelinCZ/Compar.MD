@@ -1,0 +1,41 @@
+﻿@page "/qa"
+@inject HttpClient httpClient
+
+<MudGrid>
+    <MudItem md="12">
+        <MudText Typo="Typo.h4">Intrebari Frecvente</MudText>
+    </MudItem>
+
+    @if(questions.Count == 0)
+    {
+        
+    }
+    else{
+        foreach(var question in questions)
+        {
+            <MudItem md="6">
+                <MudPaper Class="pa-4 ma-2" Elevation="3">
+                    <MudText><b>Q : @question.Question</b></MudText>
+                    <MudDivider Class="my-2" />
+                    <MudText>A: @question.Answer</MudText>
+                </MudPaper>
+            </MudItem>
+        }
+    }
+</MudGrid>
+
+
+@code {
+    List<QuestionDto> questions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        questions = await httpClient.GetFromJsonAsync<List<QuestionDto>>("api/questions");
+
+        if (questions is null)
+            questions = new();
+
+        StateHasChanged();
+        await base.OnInitializedAsync();
+    }
+}

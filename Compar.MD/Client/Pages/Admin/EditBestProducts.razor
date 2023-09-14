@@ -1,0 +1,87 @@
+﻿@page "/best-products"
+@layout AdminLayout
+@inject HttpClient httpClient
+
+
+<MudGrid>
+    <MudItem md="12" Class="mt-4">
+        <MudText>Selecteaza produse promotionale : </MudText>
+    </MudItem>
+
+    <MudGrid>
+        <MudItem md="12">
+            <MudDropContainer T="DropItem" Items="items" ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)" ItemDropped="ItemUpdated" Class="d-flex flex-wrap flex-grow-1">
+                <ChildContent>
+                    <MudDropZone T="DropItem" Identifier=@allProductsZone Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                        <MudText Typo="Typo.h6" Class="mb-4">Toate produsele</MudText>
+                    </MudDropZone>
+                    <MudDropZone T="DropItem" Identifier=@selectedProductsZone Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                        <MudText Typo="Typo.h6" Class="mb-4">Produse selectate</MudText>
+                    </MudDropZone>
+                </ChildContent>
+                <ItemRenderer>
+                    <MudPaper Elevation="25" Class="pa-4 my-4">@context.Name</MudPaper>
+                </ItemRenderer>
+            </MudDropContainer>
+        </MudItem>
+
+        <MudItem>
+            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick=UpdateSelectedItems>Editeaza produse promotionale</MudButton>
+        </MudItem>
+        
+    </MudGrid>
+</MudGrid>
+
+
+@code{
+    List<ProductDto> products = new();
+    List<DropItem> items = new();
+    static string allProductsZone = "firstZone";
+    static string selectedProductsZone = "secondZone";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetDropItems();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task GetDropItems()
+    {
+        products = await httpClient.GetFromJsonAsync<List<ProductDto>>("api/products");
+
+        foreach(var product in products)
+        {
+            var item = new DropItem(){ Id = product.Id, Name = product.Name };
+            if (product.IsSelected)
+                item.Identifier = selectedProductsZone;
+            else
+                item.Identifier = allProductsZone;
+
+            items.Add(item);
+        }
+    }
+
+    private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
+    {
+        var selectedItems = items.Where(x => x.Identifier == selectedProductsZone).Count();
+
+        if (selectedItems < 3 || (selectedItems == 3 && dropItem.Item.Identifier != allProductsZone))
+            dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
+    }
+
+    public async Task UpdateSelectedItems()
+    {
+        SelectedItemsDto dto = new();
+        dto.NewSelectedItems = items.Where(x => x.Identifier == selectedProductsZone).Select(x => x.Id).ToList();
+
+        await httpClient.PostAsJsonAsync("api/products/selected", dto);
+
+    }
+
+    public class DropItem
+    {
+        public string Id { get; set; }
+        public string Name { get; init; }
+        public string Identifier { get; set; }
+    }
+}

@@ -1,0 +1,44 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="Theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0" Color="Color.Primary">
+        <MudIconButton Href="/admin-panel" Icon="@Icons.Custom.Uncategorized.BioHazard" Style=@($"color:{Theme.PaletteDark.White}")></MudIconButton>
+        <h2>Compar.MD | </h2>
+        <MudButton Href="/" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Pagina Principala</MudButton>
+        <MudButton Href="/products" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Produse</MudButton>
+        <MudButton Href="/about-us" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4">Despre Noi</MudButton>
+        <MudButton Href="/qa" Variant="Variant.Text" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4 mr-4">Intrebari Frecvente</MudButton>
+        <h2> | </h2>
+        <MudIconButton Icon="@Icons.Custom.Brands.Facebook" Style=@($"color:{Theme.PaletteDark.White}") Class="ml-4"></MudIconButton>
+        <MudIconButton Icon="@Icons.Custom.Brands.Twitter" Style=@($"color:{Theme.PaletteDark.White}")></MudIconButton>
+        <MudIconButton Icon="@Icons.Custom.Brands.Instagram" Style=@($"color:{Theme.PaletteDark.White}")></MudIconButton>
+        
+        <MudSpacer/>
+        <MudButton Href="/login" Variant="Variant.Filled" DisableElevation="true" Color="Color.Tertiary" Class="mr-4">Autentificare</MudButton>
+        <MudButton Href="/register" Variant="Variant.Filled" DisableElevation="true" Color="Color.Secondary" Class="mr-4">Inregistrare</MudButton>
+    </MudAppBar> 
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="my-8">
+            @Body
+            <MudScrollToTop>
+                <MudFab Color="Color.Tertiary" StartIcon="@Icons.Material.Filled.ArrowCircleUp" />
+            </MudScrollToTop>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+
+@code {
+    private MudTheme Theme = new MudTheme()
+    {
+        Palette = new Palette()
+        {
+            Tertiary = Colors.DeepPurple.Darken4
+        },
+    };
+}

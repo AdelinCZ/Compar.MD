@@ -1,0 +1,95 @@
+﻿@page "/"
+@inject HttpClient httpClient;
+
+<PageTitle>Compar.MD | Pagina principala</PageTitle>
+
+<MudContainer Class="mt-16">
+
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Compar.MD</MudText>
+
+    <MudText Align="Align.Center">
+        <MudText Typo="Typo.h4">
+            @projectDescription
+        </MudText>
+    </MudText>
+
+    @if(selectedProducts is null || !selectedProducts.Any())
+    {
+        
+    }
+    else
+    {
+        
+    
+        <MudGrid Class="mt-8" Justify="Justify.Center">
+        
+        @foreach(var product in selectedProducts)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="25" Class="rounded-lg pb-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h5" Align="Align.Center">@product.Name</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+
+                    <MudCardContent>
+                            @if (product.Prices.Count == 1)
+                            {
+                                <div class="d-flex justify-center">
+                                    <MudText Typo="Typo.h6">Cel mai bun pret: @product.Prices[0].Price.ToString("0.#####") Lei - @product.Prices[0].SupplierName</MudText>
+                                </div>
+                            }
+                            else if (product.Prices.Count > 1)
+                            {
+                                <div class="d-flex justify-center">
+                                    <MudText Typo="Typo.h6">Cel mai bun pret: @product.Prices[0].Price.ToString("0.#####") Lei - @product.Prices[0].SupplierName</MudText>
+                                </div>
+                                 <MudList Style="width:300px;">
+                                @{
+                                    var i = 0;
+                                    foreach (var price in product.Prices)
+                                    {
+                                        if (i != 0)
+                                        {
+                                                <MudListItem Icon="@Icons.Material.Filled.Filter2">
+                                                    <MudText Typo="Typo.h6">@price.Price.ToString("0.#####") Lei - @price.SupplierName</MudText>
+                                                </MudListItem>
+                                        }
+                                        i++;
+                                    }
+                                }
+                                </MudList>
+                            }
+                    </MudCardContent>
+
+                <MudCardActions Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Style="width:50%;">Detalii</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        }
+    </MudGrid>
+
+    }
+</MudContainer>
+
+
+@code{
+    List<ProductDto> selectedProducts = new();
+    string projectDescription = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        projectDescription = await httpClient.GetStringAsync("api/server-description");
+
+        await GetProducts();
+        await base.OnInitializedAsync();
+    }
+
+    public async Task GetProducts()
+    {
+        selectedProducts = await httpClient.GetFromJsonAsync<List<ProductDto>>("api/products/selected");
+    }
+}
